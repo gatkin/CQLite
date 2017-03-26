@@ -33,7 +33,9 @@
 *.su
 
 # Generated Files
-cmake_install.cmake
+*.cmake
 CMakeCache.txt
-CMakeFiles/*
+CMakeFiles/
 Makefile
+bin/
+Testing/
