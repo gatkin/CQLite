@@ -90,6 +90,71 @@ return rcode;
 }  
 
 
+// Find model.
+cqlite_rcode_t cqlite_find
+    (
+    sqlite3_stmt *                      query,                  //!< Prepared SELECT query to return one result
+    cqlite_model_from_row_result_func_t model_from_result_func, //!< Function to read the result into the model
+    int *                               found_out,              //!< (out) Was a record found?
+    void *                              model_out               //!< (out) Found model
+    )
+{
+cqlite_rcode_t  rcode = CQLITE_ERROR;
+int             success;
+int             sqlite_rcode;
+
+*found_out = 0;
+
+sqlite_rcode = sqlite3_step( query );
+success = ( SQLITE_ROW == sqlite_rcode ) || ( SQLITE_DONE == sqlite_rcode );
+
+if( SQLITE_ROW == sqlite_rcode )
+    {
+    *found_out = 1;
+    success = model_from_result_func( query, model_out );
+    }
+
+if( success )
+    {
+    rcode = CQLITE_SUCCESS;
+    }
+
+return rcode;
+}    
+
+
+// Find model by id.
+cqlite_rcode_t cqlite_find_by_id
+    (
+    sqlite3 *                           db,                     //!< Database on which to execute the query
+    char const * const                  find_by_id_query,       //!< SELECT query string taking a single id parameter
+    sqlite_int64                        id,                     //!< Id to search for
+    cqlite_model_from_row_result_func_t model_from_result_func, //!< Function to read the result into the model
+    int *                               found_out,              //!< (out) Was a record found?
+    void *                              model_out               //!< (out) Found model
+    )
+{
+cqlite_rcode_t  rcode = CQLITE_ERROR;
+int             success;
+sqlite3_stmt *  select_query = NULL;
+
+*found_out = 0;
+
+success = ( SQLITE_OK == sqlite3_prepare_v2( db, find_by_id_query, READ_TO_END, &select_query, NO_TAIL ) ) &&
+          ( SQLITE_OK == sqlite3_bind_int64( select_query, 1, id ) );
+
+if( success )
+    {
+    rcode = cqlite_find( select_query, model_from_result_func, found_out, model_out );
+    }
+
+// Clean up
+sqlite3_finalize( select_query );
+
+return rcode;
+}    
+
+
 // Read fixed-length string from query.
 cqlite_rcode_t cqlite_fixed_length_string_read
     (

@@ -108,6 +108,43 @@ cqlite_rcode_t cqlite_dynamic_string_read
     );
 
 /**
+* Find single record in database.
+*
+* Executes the provided prepared SELECT query that should return
+* only one result. If the query returns a result, then this will
+* use the model_from_result_func to read the returned result into
+* model_out and will set found_out to 1. Otherwise, this will set
+* found_out to 0, and model_out will be unmodified.
+*/
+cqlite_rcode_t cqlite_find
+    (
+    sqlite3_stmt *                      query,                  //!< Prepared SELECT query to return one result
+    cqlite_model_from_row_result_func_t model_from_result_func, //!< Function to read the result into the model
+    int *                               found_out,              //!< (out) Was a record found?
+    void *                              model_out               //!< (out) Found model
+    );
+
+/**
+* Find model by id.
+*
+* Finds a model by row id. The provided find_by_id_query should be a
+* SELECT query that takes a single row id parameter. If a model with
+* the specified id is found in the database, then found_out will be
+* set to set to 1 and the provided model_from_result_func will be
+* used to read the returned record into model_out. Otherwise, found_out
+* will be set to 0, and model_out will remain unmodified.
+*/
+cqlite_rcode_t cqlite_find_by_id
+    (
+    sqlite3 *                           db,                     //!< Database on which to execute the query
+    char const * const                  find_by_id_query,       //!< SELECT query string taking a single id parameter
+    sqlite_int64                        id,                     //!< Id to search for
+    cqlite_model_from_row_result_func_t model_from_result_func, //!< Function to read the result into the model
+    int *                               found_out,              //!< (out) Was a record found?
+    void *                              model_out               //!< (out) Found model
+    );
+
+/**
 * Read fixed-length string from query.
 *
 * Reads the specified column from the provided query row result as
