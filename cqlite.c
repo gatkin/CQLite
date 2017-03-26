@@ -1,5 +1,7 @@
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "cqlite.h"
 
@@ -10,9 +12,9 @@
 // Execute count query.
 cqlite_rcode_t cqlite_count_query_execute
     (
-    sqlite3 *           db,                 //<! Database on which to execute the query
-    char const * const  count_query_str,    //<! Parameter-less COUNT query string     
-    int *               count_out           //<! (out) Returned count                  
+    sqlite3 *           db,                 //!< Database on which to execute the query
+    char const * const  count_query_str,    //!< Parameter-less COUNT query string     
+    int *               count_out           //!< (out) Returned count                  
     )
 {
 cqlite_rcode_t  rcode = CQLITE_ERROR;
@@ -50,6 +52,74 @@ if( SQLITE_ROW == sqlite3_step( count_query ) )
     {
     rcode = CQLITE_SUCCESS;
     *count_out = sqlite3_column_int( count_query, 0 );
+    }
+
+return rcode;
+}    
+
+
+// Read dynamically-allocated string from query.
+cqlite_rcode_t cqlite_dynamic_string_read
+    (
+    sqlite3_stmt *  query,      //!< Query result
+    int             column,     //!< Column of string to read from query result
+    char **         string_out  //!< (out) Dynamically-allocated string read from query, caller must free
+    )
+{
+cqlite_rcode_t  rcode = CQLITE_ERROR;
+int             success;
+int             column_type;
+
+*string_out = NULL;
+
+column_type = sqlite3_column_type( query, column );
+success = ( SQLITE_TEXT == column_type ) || ( SQLITE_NULL == column_type );
+
+if( SQLITE_TEXT == column_type )
+    {
+    *string_out = strdup( sqlite3_column_text( query, column ) );
+    success = ( NULL != *string_out );
+    }
+
+if( success )
+    {
+    rcode = CQLITE_SUCCESS;
+    }
+
+return rcode;
+}  
+
+
+// Read fixed-length string from query.
+cqlite_rcode_t cqlite_fixed_length_string_read
+    (
+    sqlite3_stmt *  query,          //!< Query result
+    int             column,         //!< Column of string to read from query result
+    char *          string,         //!< String buffer, must be allocated by caller to be of size string_size
+    size_t          string_size     //!< Size of the string buffer
+    )
+{
+cqlite_rcode_t  rcode = CQLITE_ERROR;
+int             success;
+int             column_type;
+int             bytes_printed;
+
+column_type = sqlite3_column_type( query, column );
+success = ( SQLITE_TEXT == column_type ) || ( SQLITE_NULL == column_type );
+
+if( SQLITE_TEXT == column_type )
+    {
+    bytes_printed = snprintf( string, string_size, "%s", sqlite3_column_text( query, column ) );
+    success = ( 0 <= bytes_printed ) && ( bytes_printed < string_size );
+    }
+else if( SQLITE_NULL == column_type )
+    {
+    memset( string, 0, string_size );
+    }
+
+if( success )
+    {
+    rcode = CQLITE_SUCCESS;
     }
 
 return rcode;
@@ -133,7 +203,7 @@ cqlite_rcode_t cqlite_select_query_execute_prepared
 cqlite_rcode_t  rcode = CQLITE_ERROR;
 int             success;
 int             model_list_cnt = 0;
-void **         model_list = NULL;
+void *          model_list = NULL;
 int             sqlite_rcode = SQLITE_ERROR;
 int             model_idx = 0;
 

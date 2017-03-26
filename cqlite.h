@@ -76,9 +76,9 @@ typedef int (*cqlite_model_from_row_result_func_t)
 */
 cqlite_rcode_t cqlite_count_query_execute
     (
-    sqlite3 *           db,                 //<! Database on which to execute the query
-    char const * const  count_query_str,    //<! Parameter-less COUNT query string     
-    int *               count_out           //<! (out) Returned count                  
+    sqlite3 *           db,                 //!< Database on which to execute the query
+    char const * const  count_query_str,    //!< Parameter-less COUNT query string     
+    int *               count_out           //!< (out) Returned count                  
     );
 
 /**
@@ -90,6 +90,38 @@ cqlite_rcode_t cqlite_count_query_execute_prepared
     (
     sqlite3_stmt *  count_query,    //!< Prepared COUNT query
     int *           count_out       //!< (out) Returned count
+    );
+
+/**
+* Read dynamically-allocated string from query.
+*
+* Reads the specified column from the provided query row result as
+* a dynamically allocated string into string_out. The caller must
+* call free() on string_out. If the column result is NULL or not
+* a string, string_out will be set to NULL.
+*/
+cqlite_rcode_t cqlite_dynamic_string_read
+    (
+    sqlite3_stmt *  query,      //!< Query result
+    int             column,     //!< Column of string to read from query result
+    char **         string_out  //!< (out) Dynamically-allocated string read from query, caller must free
+    );
+
+/**
+* Read fixed-length string from query.
+*
+* Reads the specified column from the provided query row result as
+* a fixed length string into the provided string buffer. Returns an
+* error if the column result either is not a string or if its length
+* exceeds the size of the string buffer. If the column result is NULL,
+* then the string buffer will be set to an empty string.
+*/
+cqlite_rcode_t cqlite_fixed_length_string_read
+    (
+    sqlite3_stmt *  query,          //!< Query result
+    int             column,         //!< Column of string to read from query result
+    char *          string,         //!< String buffer, must be allocated by caller to be of size string_size
+    size_t          string_size     //!< Size of the string buffer
     );
 
 /**

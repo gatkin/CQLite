@@ -1,5 +1,5 @@
 # CQLite
-The goal of CQLite is to provide a slightly simplified C interface for processing with SQLite query results in order to reduce the amount of boiler-plate code developers need to write to interact with a database. CQLite identifies a few common operations performed on SQLite databases and provides a way to abstract away the common bits of code meeded to perform these actions which include:
+The goal of CQLite is to provide a slightly simplified C interface for processing SQLite query results in order to reduce the amount of boiler-plate code developers need to write to interact with a database. CQLite identifies a few common operations performed on SQLite databases and provides a way to abstract away the common bits of code meeded to perform these actions which include:
       
 - Reading through all results of a SELECT query
 - Reading the result of a COUNT query
