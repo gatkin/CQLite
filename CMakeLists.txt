@@ -2,7 +2,8 @@ cmake_minimum_required (VERSION 2.8)
 
 project (CQLite)
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(CMAKE_C_FLAGS "-g")
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 include(CTest)
 

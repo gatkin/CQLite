@@ -1,5 +1,7 @@
-add_executable(test_cqlite cqlite_tests.c)
+set(SOURCES cqlite_tests.c test_database.c)
 
-target_link_libraries(test_cqlite cqlite unity)
+add_executable(test_cqlite ${SOURCES})
+
+target_link_libraries(test_cqlite cqlite unity sqlite3)
 
 add_test(cqlite test_cqlite)
